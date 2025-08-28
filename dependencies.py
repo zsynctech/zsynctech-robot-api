@@ -1,16 +1,29 @@
-from fastapi import Header, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import HTTPException, Depends
+from dotenv import load_dotenv
+import json
+import os
 
-API_TOKEN = "1234567890"
+load_dotenv()
 
-def verify_bearer_token(authorization: str = Header(...)):
+TOKENS = os.environ.get("TOKENS", None)
+
+if TOKENS is None:
+    raise RuntimeError("Tokens não encontrados")
+
+TOKENS = json.loads(TOKENS)
+
+security = HTTPBearer()
+
+def verify_bearer_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
     Verifica se o header Authorization contém o token correto no formato:
     Authorization: Bearer <token>
     """
-    if not authorization.startswith("Bearer "):
+
+    if str(credentials.scheme).lower().strip() != "bearer":
         raise HTTPException(status_code=401, detail="Authorization inválido")
-    
-    token = authorization.split(" ", 1)[1]
-    if token != API_TOKEN:
+
+    if credentials.credentials not in TOKENS:
         raise HTTPException(status_code=401, detail="Token inválido")
     return True
