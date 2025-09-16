@@ -1,12 +1,8 @@
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi import HTTPException, Depends
-from dotenv import load_dotenv
+from settings import TOKENS
 import json
-import os
 
-load_dotenv()
-
-TOKENS = os.environ.get("TOKENS", None)
 
 if TOKENS is None:
     raise RuntimeError("Tokens não encontrados")
