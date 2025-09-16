@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Response, HTTPException, Depends, BackgroundTasks
 from dependencies import verify_bearer_token
 from models.instances import InstanceData
+from settings import RABBITMQ_URL
 import json
 import pika
-import os
 
 router = APIRouter(
     tags=["start"],
@@ -14,13 +14,12 @@ router = APIRouter(
     }
 )
 
-RABBITMQ = os.environ.get("RABBITMQ")
 EXCHANGE_NAME = "start"
 
 def send_to_queue(instance_id: str, data: dict):
     try:
         connection = pika.BlockingConnection(
-            pika.URLParameters(url=RABBITMQ)
+            pika.URLParameters(url=RABBITMQ_URL)
         )
         channel = connection.channel()
         channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='direct', durable=True)
